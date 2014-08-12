@@ -98,11 +98,11 @@ public class Translate
 					if((temp.lastIndexOf("event") != -1) && (temp.lastIndexOf("device") == -1) && (temp.lastIndexOf("name") == -1)) 					
 					{	
 						String[] tokens = null;
-						String splitOn = " ";
+						String splitOn = "(\\[|\\]| )+";
 											
 						tokens = temp.split(splitOn);					
 							
-						inputDeviceType = tokens[1];
+						inputDeviceType = tokens[2];
 						inputDeviceType = removeColon(inputDeviceType);
 						String eventNumber = getInputDevice(inputDeviceType);
 						int currentEventIsValid = 0;
@@ -161,24 +161,28 @@ public class Translate
 					String timestampString = "";					
 					double timestamp = 0.0;					
 					long interval = 0;
-					String splitOn = " ";
+					String splitOn = "(\\[|\\]| )+";
 					int seconds = 0;
 					int microseconds = 0;
 					
-					tokens = line.split(splitOn);					
-					timestampString = tokens[0];
+//					tokens = line.split(splitOn);					
+//					timestampString = tokens[0];
 					
-					if(!timestampString.equals("add") && timestampString.length() != 0 && !timestampString.equals("could"))
+//					if(!timestampString.equals("add") && timestampString.length() != 0 && !timestampString.equals("could"))
+					if (line.startsWith("["))
 					{										
+						tokens = line.split(splitOn);
+						
+						timestampString = tokens[1];
 						timestampString = removeColon(timestampString);						
 						
 						String[] times = null;											
-						times = timestampString.split("-");
+						times = timestampString.split("\\.");
 						seconds = stringToInt(times[0]);
 						microseconds = stringToInt(times[1]);
 						timestamp = seconds + ((double)microseconds/1000000);
 						
-						inputDeviceType = tokens[1];
+						inputDeviceType = tokens[2];
 						inputDeviceType = removeColon(inputDeviceType);						
 						String eventNumber = getInputDevice(inputDeviceType);
 						
@@ -199,9 +203,9 @@ public class Translate
 						
 						if((currentEventIsValid && !eventNumber.equals("*")) || (allEventsValid && !eventNumber.equals("*")))//7-18-12
 						{
-							type = hexToLong(tokens[2]);
-							code = hexToLong(tokens[3]);
-							value = hexToLong(tokens[4]);
+							type = hexToLong(tokens[3]);
+							code = hexToLong(tokens[4]);
+							value = hexToLong(tokens[5]);
 		
 							// Check to see if this is the first event,
 							// if it is then we want the sendevent to start right away
@@ -214,7 +218,7 @@ public class Translate
 							// Calculate the interval by looking at the timestamps
 							long longTimestamp = (long)(timestamp * 1000000000);
 							long longPrevTimestamp = (long)(prevTimestamp * 1000000000);
-							interval = longTimestamp - longPrevTimestamp;					
+							interval = longTimestamp - longPrevTimestamp;	
 							
 							if(interval >= 0)
 							{								
